@@ -55,20 +55,6 @@ classDiagram
         +tip_for(appliance_name) str
         +what_if_reduce(appliance, hours) float
     }
-    class EnergyGUI {
-        -household : Household
-        -calculator : TariffCalculator
-        -analyzer : EnergyAnalyzer
-        +add_appliance() None
-        +remove_selected() None
-        +show_bill() None
-        +show_analysis() None
-        +what_if() None
-        +refresh() None
-    }
-    EnergyGUI "1" *-- "1" Household : manages
-    EnergyGUI "1" *-- "1" TariffCalculator : uses
-    EnergyGUI "1" *-- "1" EnergyAnalyzer : uses
     EnergyApp "1" *-- "1" Household : manages
     EnergyApp "1" *-- "1" TariffCalculator : uses
     EnergyApp "1" *-- "1" EnergyAnalyzer : uses

@@ -112,7 +112,7 @@ which made it easier to split the work between the two of us and to test each pa
 | Keep a list of appliances and total them | `Household` class |
 | Turn kWh into ringgit | `TariffCalculator` class |
 | Rating, CO2, tips, what-if | `EnergyAnalyzer` class |
-| Menu and user interaction | `EnergyApp` (console) and `EnergyGUI` (window) |
+| Menu and user interaction | `EnergyApp` class and `ui/display.py` |
 | Check user input | functions in `utils/validation.py` |
 
 **Pattern recognition.** While working out examples on paper we noticed the same calculation kept
@@ -131,7 +131,7 @@ need to know the actual numbers. If the tariff changes, only one list needs to b
 
 **Algorithm design.** For each main feature we wrote out the steps in plain English before
 writing any Python. The tiered bill algorithm, the usage rating and the what-if calculation are
-described step by step in Section 5.3.
+described step by step in Section 5.2.
 
 ### 4.2 UML class diagram
 
@@ -139,12 +139,10 @@ described step by step in Section 5.3.
 
 ![UML class diagram](uml_class_diagram.png)
 
-The diagram shows six classes and how they relate:
+The diagram shows five classes and how they relate:
 
 - **EnergyApp** is the console controller. It owns one `Household`, one `TariffCalculator` and one
   `EnergyAnalyzer` (composition) and runs the menu loop.
-- **EnergyGUI** is the optional window version. It owns the same three objects, so both interfaces
-  share exactly the same logic.
 - **Household** holds zero or more `Appliance` objects (aggregation). It can total their usage,
   sort them and save or load them from a CSV file.
 - **Appliance** stores the five values described above and calculates its own daily and monthly kWh.
@@ -164,8 +162,7 @@ energy_saver/
 ├── models/                 Appliance, Household
 ├── services/               TariffCalculator, EnergyAnalyzer
 ├── utils/validation.py     get_text, get_int, get_float, get_yes_no
-├── ui/display.py           display_main_menu, display_appliance_table, display_bill, ...
-└── ui/gui.py               EnergyGUI (optional Tkinter window)
+└── ui/display.py           display_main_menu, display_appliance_table, display_bill, ...
 tests/test_calculations.py  unit tests
 ```
 
@@ -187,20 +184,7 @@ tests/test_calculations.py  unit tests
 | Comments | every module, class and function has a docstring, and formulas have inline comments |
 | Coding style | 4-space indentation, descriptive names such as `total_monthly_kwh` and `hours_per_day` |
 
-### 5.2 Optional graphical interface
-
-The brief only asks for a console program, and that is still the main version. We also added a
-small window version (`python3 run_gui.py`) using **Tkinter**, which comes with Python. We did
-not copy any of the calculations into it. The `EnergyGUI` class simply creates the same
-`Household`, `TariffCalculator` and `EnergyAnalyzer` objects and calls their methods. For us this
-was a good test of our design: because we had separated the logic from the interface, adding a
-whole new interface only meant writing one new file.
-
-**Figure 2. Optional Tkinter window on macOS with the sample household loaded**
-
-![GUI window](screenshots/05_gui_window.png)
-
-### 5.3 Key algorithms
+### 5.2 Key algorithms
 
 **Energy of one appliance**
 
@@ -253,7 +237,7 @@ cut at the appliance's current hours, so the user cannot "save" more than the ap
 The new bill is then recalculated from the new total, not just the saved kWh times one rate,
 so the tiered effect is included.
 
-### 5.4 Code excerpts
+### 5.3 Code excerpts
 
 The tiered bill loop in `TariffCalculator`:
 
@@ -295,48 +279,243 @@ def get_float(prompt, minimum=0.0, maximum=None):
 
 ## 6. Testing & Sample Outputs
 
-### 6.1 Test cases
+### 6.1 Walkthrough of every feature
 
-We tested the program in two ways: by running it by hand with good and bad inputs, and with
-automated unit tests (`python3 -m unittest -v`) that check the calculations. All 10 unit tests
-pass.
+In this section we go through the program one menu option at a time. Every screenshot below was
+taken from a real run of `python3 run.py`, and the inputs we typed are visible after each prompt.
+For each feature we explain what the user sees and which part of our code does the work.
 
-| # | What we tested | Input | Expected result | Result |
-|---|---|---|---|---|
-| T1 | Letters in the menu | `abc` | "Please enter a whole number." and ask again | Pass |
-| T2 | Menu number too high | `9` | "Please enter a number from 0 to 8." | Pass |
-| T3 | Negative menu number | `-1` | Range message, ask again | Pass |
-| T4 | Calculate with no appliances | option 4 on empty list | Warning, back to menu | Pass |
-| T5 | Empty appliance name | blank | "This field cannot be empty." | Pass |
-| T6 | Name too long | 45 characters | "Please keep it under 40 characters." | Pass |
-| T7 | Watts not a number | `lots` | "Please enter a number" | Pass |
-| T8 | Negative watts | `-5` | "Value must be at least 1." | Pass |
-| T9 | Watts = `nan` | `nan` | "Please enter a real number." | Pass |
-| T10 | Decimal quantity | `1.5` | "Please enter a whole number." | Pass |
-| T11 | Hours above 24 | `30` | "Value must not exceed 24." | Pass |
-| T12 | Days above 31 | `40` | Range message | Pass |
-| T13 | Invalid yes/no answer | `maybe` | "Please answer 'y' or 'n'." | Pass |
-| T14 | kWh of one appliance | 1000 W, 1, 8 h, 30 days | 240.0 kWh | Pass |
-| T15 | Quantity is multiplied | 10 W, 8 bulbs, 6 h, 30 days | 14.4 kWh | Pass |
-| T16 | Bill in first block | 100 kWh | RM 21.80 | Pass |
-| T17 | Bill across two blocks | 250 kWh | RM 60.30 | Pass |
-| T18 | Bill for sample home | 512.4 kWh | RM 186.60 | Pass |
-| T19 | Service tax applied | 700 kWh | energy charge × 1.08 = RM 309.31 | Pass |
-| T20 | Zero usage | 0 kWh | RM 0.00 | Pass |
-| T21 | Rating boundaries | 200 / 201 / 601 kWh | LOW / MODERATE / VERY HIGH | Pass |
-| T22 | What-if is capped | TV 5 h/day, cut 10 h | saves 15 kWh (not 30) | Pass |
-| T23 | What-if result | AC cut 3 h/day | saves 90 kWh and RM 46.44 a month | Pass |
-| T24 | Remove appliance | remove no. 7 | list goes from 8 to 7 items | Pass |
-| T25 | Save and load CSV | save, then load | the same appliances come back | Pass |
-| T26 | Load a missing file | `x.csv` | "File 'x.csv' was not found." | Pass |
-| T27 | Exit confirmation | `0` then `n` | stays in the program | Pass |
+#### 6.1.1 Starting the program and the main menu
+
+When the program starts, `main()` creates an `EnergyApp` object and calls its `run()` method.
+`run()` is a `while` loop that keeps showing the main menu (drawn by `display_main_menu()`) until
+the user chooses to exit. Each menu number is linked to a method through a dictionary, so the
+program does not need a long chain of `if` statements to decide what to do.
+
+**Figure 2. Main menu shown when the program starts**
+
+![Main menu shown when the program starts](screenshots/01_main_menu.png)
+
+#### 6.1.2 Invalid menu choices
+
+The menu choice is read with `get_int(prompt, 0, 8)`. In Figure 3 we typed letters (`abc`), a
+number that is too high (`9`) and a negative number (`-1`). Each time the program prints a short
+message and asks again instead of crashing. The `while` loop inside `get_int` only ends when a
+whole number from 0 to 8 is entered.
+
+**Figure 3. Invalid menu inputs are rejected and the user is asked again**
+
+![Invalid menu inputs are rejected and the user is asked again](screenshots/02_invalid_menu.png)
+
+#### 6.1.3 Using a feature before adding any appliances
+
+If the user picks a feature such as the bill (option 4) while the list is still empty, the helper
+method `_require_appliances()` notices that `household.is_empty()` is `True`, shows a warning and
+returns to the menu. Options 2 to 6 all use this check.
+
+**Figure 4. Warning when there are no appliances yet**
+
+![Warning when there are no appliances yet](screenshots/03_empty_list_warning.png)
+
+#### 6.1.4 Option 1: Adding appliances
+
+Option 1 runs `add_appliance()`. The user enters the name, power in watts, quantity, hours per day
+and days per month. The program creates an `Appliance` object, adds it to the `Household`, and
+immediately shows how many kWh it uses per month, using `Appliance.monthly_kwh()`. In Figure 5 we
+added an air conditioner (240 kWh a month) and eight LED lights (14.4 kWh), answering `y` to
+add another appliance and `n` to stop.
+
+**Figure 5. Adding two appliances (option 1)**
+
+![Adding two appliances (option 1)](screenshots/04_add_appliance.png)
+
+#### 6.1.5 Input validation while adding an appliance
+
+This is where most of our error handling happens. Figure 6 shows one run where we deliberately
+typed wrong values for every field: an empty name, the word `lots`, a negative power, `nan`, a
+decimal quantity, 30 hours in a day, 40 days in a month and `maybe` for a yes/no question. Each
+field uses its own validation function (`get_text`, `get_float`, `get_int` or `get_yes_no`), and
+each one explains what went wrong. The appliance is only created once every value is valid.
+
+**Figure 6. Every field rejects invalid input with a clear message**
+
+![Every field rejects invalid input with a clear message](screenshots/05_add_validation.png)
+
+#### 6.1.6 Option 7: Loading the sample household
+
+To make testing and demonstrations faster, option 7 fills the list with eight typical appliances
+of a four-person terrace house. It runs `load_sample_data()`, which loops over the
+`SAMPLE_APPLIANCES` list and creates an `Appliance` for each row. If the list already has data, the
+program asks before replacing it. The next screenshots use this sample data.
+
+**Figure 7. Loading the sample household (option 7)**
+
+![Loading the sample household (option 7)](screenshots/06_load_sample.png)
+
+#### 6.1.7 Option 2: Viewing the appliance list
+
+Option 2 prints every appliance in a table with its power, quantity, hours, days and monthly kWh,
+followed by the total. The table is printed by `display_appliance_table()`, which uses a `for` loop
+with `enumerate()` and f-strings with fixed column widths so the numbers line up. The total of
+512.4 kWh comes from `Household.total_monthly_kwh()`, which adds up each appliance in a loop.
+
+**Figure 8. Appliance table with monthly kWh and total (option 2)**
+
+![Appliance table with monthly kWh and total (option 2)](screenshots/07_view_list.png)
+
+#### 6.1.8 Option 3: Removing an appliance
+
+Option 3 shows the same table and asks for the number of the appliance to remove (0 cancels).
+In Figure 9 we removed number 7, the washing machine. The number the user types starts at 1, so
+the program subtracts 1 before calling `Household.remove_appliance(index)`, which uses
+`list.pop()`.
+
+**Figure 9. Removing the washing machine (option 3)**
+
+![Removing the washing machine (option 3)](screenshots/08_remove_appliance.png)
+
+#### 6.1.9 Option 4: Monthly usage and bill
+
+Option 4 is the main calculation. `calculate_bill()` gets the total kWh, and `display_bill()` asks
+`TariffCalculator.breakdown()` to split it into tariff blocks. For the sample home (512.4 kWh) the
+first 200 kWh cost RM 43.60, the next 100 cost RM 33.40 and the remaining 212.4 kWh cost RM 109.60,
+giving RM 186.60. No service tax is added because the usage is below 600 kWh. The program also
+shows the average per day and a projected yearly cost.
+
+**Figure 10. Bill breakdown for the sample household (option 4)**
+
+![Bill breakdown for the sample household (option 4)](screenshots/09_bill.png)
+
+#### 6.1.10 Option 8: Loading a household from a CSV file
+
+Option 8 opens a small sub-menu to save or load the appliance list. In Figure 11 we loaded
+`large_house.csv`, a file describing a six-person house with three air conditioners.
+`Household.load_from_csv()` reads the file with Python's `csv` module, skips the header row and
+turns every row back into an `Appliance` object.
+
+**Figure 11. Loading a larger household from a CSV file (option 8)**
+
+![Loading a larger household from a CSV file (option 8)](screenshots/10_load_csv.png)
+
+#### 6.1.11 A bill that reaches every tariff block
+
+After loading the large house, option 4 gives 1175.2 kWh. Figure 12 shows the tiered algorithm
+working through all five blocks, and because the usage is above 600 kWh, the 8% service tax
+(RM 44.22) is added. The final estimate is RM 596.96 a month. This screenshot is a good check
+that the last block, which has no upper limit, takes all the remaining kWh.
+
+**Figure 12. Bill for the large house, using all five blocks plus service tax**
+
+![Bill for the large house, using all five blocks plus service tax](screenshots/11_bill_with_tax.png)
+
+#### 6.1.12 Option 5: Energy-saving analysis
+
+Option 5 runs `show_analysis()`. It uses `EnergyAnalyzer` to give a usage rating (an
+`if / elif / else` chain), the monthly CO2 emissions, and the number of trees needed to absorb a
+year of those emissions. It then sorts the appliances from biggest to smallest with
+`Household.sorted_by_usage()` and draws a simple bar chart, one `#` for every 2% of usage. Finally,
+it gives a saving tip for the top three appliances, matched by keyword in `tip_for()`.
+
+**Figure 13. Energy-saving analysis for the sample household (option 5)**
+
+![Energy-saving analysis for the sample household (option 5)](screenshots/12_analysis.png)
+
+#### 6.1.13 Option 6: What-if simulator
+
+Option 6 lets the user test a change before making it. We picked the air conditioner and first
+asked to cut 10 hours, which is more than it is used (8 hours), so the program refused. With
+3 hours, `what_if_reduce()` calculated a saving of 90 kWh. The program then calculated the bill
+again for the new total, so the tiered pricing is taken into account: the bill drops from
+RM 186.60 to RM 140.16, saving RM 46.44 a month, RM 557.28 a year and 52.6 kg of CO2 a month.
+
+**Figure 14. What-if simulator: air conditioner used 3 hours less per day (option 6)**
+
+![What-if simulator: air conditioner used 3 hours less per day (option 6)](screenshots/13_what_if.png)
+
+#### 6.1.14 Option 8: Saving to a CSV file
+
+Users can save their list so they do not have to type it again next time. `save_to_csv()` writes
+a header row and one row per appliance. In Figure 15 we saved the sample household as
+`my_home.csv`. If the user just presses Enter at the file name prompt, the default name
+`appliances.csv` is used.
+
+**Figure 15. Saving the appliance list to a CSV file (option 8)**
+
+![Saving the appliance list to a CSV file (option 8)](screenshots/14_save_csv.png)
+
+#### 6.1.15 Loading a file that does not exist
+
+If the file cannot be found, the `try / except FileNotFoundError` block in `file_menu()` catches the
+error and prints a friendly message instead of a Python traceback. Other file problems, such as a
+badly formatted row, are caught by `except (OSError, ValueError)`.
+
+**Figure 16. Friendly error when the CSV file is missing**
+
+![Friendly error when the CSV file is missing](screenshots/15_missing_file.png)
+
+#### 6.1.16 Option 0: Exiting the program
+
+Option 0 calls `exit_app()`, which asks for confirmation so the user does not quit by accident.
+Answering `n` returns to the menu. Answering `y` sets `self.running` to `False`, which ends the
+`while` loop in `run()`, and the program says goodbye. Pressing Ctrl+C at any time is also handled
+in `main()`, so the program never ends with an error message.
+
+**Figure 17. Exit confirmation (option 0)**
+
+![Exit confirmation (option 0)](screenshots/16_exit.png)
+
+### 6.2 Test cases
+
+We tested the program in two ways: by running it by hand with good and bad inputs (the
+screenshots in Section 6.1 are from those runs), and with automated unit tests that check the
+calculations. The last column shows where each result can be seen.
+
+| # | What we tested | Input | Expected result | Result | Evidence |
+|---|---|---|---|---|---|
+| T1 | Letters in the menu | `abc` | "Please enter a whole number." and ask again | Pass | Fig. 3 |
+| T2 | Menu number too high | `9` | "Please enter a number from 0 to 8." | Pass | Fig. 3 |
+| T3 | Negative menu number | `-1` | Range message, ask again | Pass | Fig. 3 |
+| T4 | Calculate with no appliances | option 4 on empty list | Warning, back to menu | Pass | Fig. 4 |
+| T5 | Empty appliance name | blank | "This field cannot be empty." | Pass | Fig. 6 |
+| T6 | Name too long | 45 characters | "Please keep it under 40 characters." | Pass | manual run |
+| T7 | Watts not a number | `lots` | "Please enter a number" | Pass | Fig. 6 |
+| T8 | Negative watts | `-5` | "Value must be at least 1." | Pass | Fig. 6 |
+| T9 | Watts = `nan` | `nan` | "Please enter a real number." | Pass | Fig. 6 |
+| T10 | Decimal quantity | `1.5` | "Please enter a whole number." | Pass | Fig. 6 |
+| T11 | Hours above 24 | `30` | "Value must not exceed 24." | Pass | Fig. 6 |
+| T12 | Days above 31 | `40` | Range message | Pass | Fig. 6 |
+| T13 | Invalid yes/no answer | `maybe` | "Please answer 'y' or 'n'." | Pass | Fig. 6 |
+| T14 | kWh of one appliance | 1000 W, 1, 8 h, 30 days | 240.0 kWh | Pass | Fig. 5, 18 |
+| T15 | Quantity is multiplied | 10 W, 8 bulbs, 6 h, 30 days | 14.4 kWh | Pass | Fig. 8, 18 |
+| T16 | Bill in first block | 100 kWh | RM 21.80 | Pass | Fig. 18 |
+| T17 | Bill across two blocks | 250 kWh | RM 60.30 | Pass | Fig. 18 |
+| T18 | Bill for sample home | 512.4 kWh | RM 186.60 | Pass | Fig. 10, 18 |
+| T19 | Service tax applied | 700 kWh | energy charge × 1.08 = RM 309.31 | Pass | Fig. 12, 18 |
+| T20 | Zero usage | 0 kWh | RM 0.00 | Pass | Fig. 18 |
+| T21 | Rating boundaries | 200 / 201 / 601 kWh | LOW / MODERATE / VERY HIGH | Pass | Fig. 18 |
+| T22 | What-if is capped | TV 5 h/day, cut 10 h | saves 15 kWh (not 30) | Pass | Fig. 14, 18 |
+| T23 | What-if result | AC cut 3 h/day | saves 90 kWh and RM 46.44 a month | Pass | Fig. 14 |
+| T24 | Remove appliance | remove no. 7 | list goes from 8 to 7 items | Pass | Fig. 9 |
+| T25 | Save and load CSV | save, then load | the same appliances come back | Pass | Fig. 11, 15 |
+| T26 | Load a missing file | `x.csv` | "File 'x.csv' was not found." | Pass | Fig. 16 |
+| T27 | Exit confirmation | `0` then `n` | stays in the program | Pass | Fig. 17 |
 
 *Table 3. Test cases.*
 
-### 6.2 Results from three example households
+The automated tests are in `tests/test_calculations.py` and use Python's built-in `unittest`
+module. They check the kWh formula, the household total and sorting, the tariff for one block,
+two blocks, zero usage and the tax case, the rating boundaries, the what-if cap and tip matching.
+All 10 tests pass (Figure 18).
+
+**Figure 18. All 10 automated unit tests pass**
+
+![All 10 automated unit tests pass](screenshots/17_unit_tests.png)
+
+### 6.3 Results from three example households
 
 To see whether the results make sense, we entered three different households into the app. The
-"terrace house" is the built-in sample data (option 7). The other two were entered by hand.
+"terrace house" is the built-in sample data (option 7), the large house was loaded from a CSV file
+(Figure 11), and the apartment was entered by hand.
 
 | Household | Main appliances | kWh / month | Bill (RM) | Average sen / kWh | CO2 (kg / month) | Rating |
 |---|---|---|---|---|---|---|
@@ -360,7 +539,7 @@ The same effect shows up when we run the bill calculation for different usage le
 
 *Table 5. Bill and average cost per kWh at different usage levels.*
 
-### 6.3 What-if results for the sample household
+### 6.4 What-if results for the sample household
 
 Using option 6 on the terrace house (512.4 kWh, RM 186.60) gave the following savings:
 
@@ -379,27 +558,6 @@ Using option 6 on the terrace house (512.4 kWh, RM 186.60) gave the following sa
 We also checked lighting separately. Eight 60 W incandescent bulbs used 6 hours a day would use
 86.4 kWh a month, compared with 14.4 kWh for eight 10 W LEDs. In the sample home that difference
 alone would add about **RM 37 a month** to the bill.
-
-### 6.4 Screenshots
-
-The screenshots below were taken while running the program in the macOS Terminal
-(`python3 run.py`). The full text of one test session is in `docs/sample_output.txt`.
-
-**Figure 3. Main menu when the program starts**
-
-![Main menu](screenshots/01_main_menu.png)
-
-**Figure 4. Loading the sample household (option 7) and calculating the monthly bill (option 4)**
-
-![Sample data and bill](screenshots/02_sample_data_and_bill.png)
-
-**Figure 5. Input validation: the menu choice `9` is rejected and the user is asked again**
-
-![Invalid menu input](screenshots/03_invalid_menu_input.png)
-
-**Figure 6. Energy-saving analysis (option 5) with rating, CO2, usage share chart and tips**
-
-![Energy analysis](screenshots/04_energy_analysis.png)
 
 ## 7. Discussion & Limitations
 
@@ -436,14 +594,14 @@ avoids. That kind of specific feedback is more likely to change behaviour than g
    whether their usage is going down over time.
 5. **Simple tips.** Tips are matched by keywords in the appliance name. An appliance with an
    unusual name only gets a general tip.
-6. **Basic interface.** The console menu is easy to use but plain, and the Tkinter window does not
-   show graphical charts.
+6. **Text only.** The console menu is easy to use but plain. The usage chart is drawn with `#`
+   characters, so there are no real graphs.
 
 ### 7.3 Future improvements
 
 If we continued the project, we would add a solar panel savings estimator, a monthly history so
 users can see trends, the current official tariff (or a way to load it from a file), the latest
-emission factor with a choice of region, and charts in the window version. A mobile version would
+emission factor with a choice of region, and a graphical or web interface with charts. A mobile version would
 also make it easier for people to enter their appliances while walking around the house.
 
 ## 8. Conclusion

@@ -13,22 +13,9 @@ save by changing their habits.
 Requires Python 3.8+ and no extra libraries.
 
 ```bash
-python3 run.py           # console version (or: python3 -m energy_saver)
-python3 run_gui.py       # simple window (GUI) version, uses Tkinter
+python3 run.py           # start the app (or: python3 -m energy_saver)
 python3 -m unittest -v   # run the unit tests
 ```
-
-The GUI uses Tkinter, which is part of Python's standard library.
-
-**macOS note:** use the Python installer from [python.org](https://www.python.org/downloads/).
-The Apple system Python (`/usr/bin/python3`) ships an old Tk that shows a blank
-window. After installing python.org Python, run:
-
-```bash
-/usr/local/bin/python3 run_gui.py
-```
-
-(With Homebrew Python, run `brew install python-tk` if you get `No module named '_tkinter'`.)
 
 ## Features (main menu)
 | Option | Feature |
@@ -54,7 +41,6 @@ energy_saver/
   services/analysis.py EnergyAnalyzer (CO2, rating, tips, what-if)
   utils/validation.py  input validation helpers
   ui/display.py        formatted console output
-  ui/gui.py            EnergyGUI: simple Tkinter window (optional)
 tests/                 unit tests
 docs/                  UML diagram, sample output, report and slide drafts
 ```

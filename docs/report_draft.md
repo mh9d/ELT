@@ -296,16 +296,20 @@ program does not need a long chain of `if` statements to decide what to do.
 
 ![Main menu shown when the program starts](screenshots/01_main_menu.png)
 
+*What this screenshot shows:* The program is started with `python3 run.py`. The main menu lists all eight features plus Exit, and the cursor waits at `Enter your choice (0-8):` for the user to type a number.
+
 #### 6.1.2 Invalid menu choices
 
-The menu choice is read with `get_int(prompt, 0, 8)`. In Figure 3 we typed letters (`abc`), a
-number that is too high (`9`) and a negative number (`-1`). Each time the program prints a short
-message and asks again instead of crashing. The `while` loop inside `get_int` only ends when a
+The menu choice is read with `get_int(prompt, 0, 8)`. In Figure 3 we typed `9`, which is not one
+of the menu options. The program prints a short message and asks again instead of crashing, and
+the same happens for letters or negative numbers. The `while` loop inside `get_int` only ends when a
 whole number from 0 to 8 is entered.
 
-**Figure 3. Invalid menu inputs are rejected and the user is asked again**
+**Figure 3. An invalid menu choice is rejected and the user is asked again**
 
 ![Invalid menu inputs are rejected and the user is asked again](screenshots/02_invalid_menu.png)
+
+*What this screenshot shows:* `9` is outside the range 0 to 8, so `get_int` prints "Please enter a number from 0 to 8." and shows the prompt again. The next valid choice (`5`) is accepted.
 
 #### 6.1.3 Using a feature before adding any appliances
 
@@ -316,6 +320,8 @@ returns to the menu. Options 2 to 6 all use this check.
 **Figure 4. Warning when there are no appliances yet**
 
 ![Warning when there are no appliances yet](screenshots/03_empty_list_warning.png)
+
+*What this screenshot shows:* Option 4 was chosen with an empty list. Instead of dividing by zero or printing an empty bill, the program warns the user and waits for Enter to go back to the menu.
 
 #### 6.1.4 Option 1: Adding appliances
 
@@ -329,6 +335,8 @@ add another appliance and `n` to stop.
 
 ![Adding two appliances (option 1)](screenshots/04_add_appliance.png)
 
+*What this screenshot shows:* Two appliances are entered one after the other. After each one the program confirms what was saved and shows its monthly kWh (240.0 for the air conditioner, 14.4 for the eight LED lights).
+
 #### 6.1.5 Input validation while adding an appliance
 
 This is where most of our error handling happens. Figure 6 shows one run where we deliberately
@@ -341,6 +349,8 @@ each one explains what went wrong. The appliance is only created once every valu
 
 ![Every field rejects invalid input with a clear message](screenshots/05_add_validation.png)
 
+*What this screenshot shows:* Each wrong value produces its own message: empty name, text instead of a number, a negative number, `nan`, a decimal quantity, 30 hours, 40 days and an invalid yes/no answer. The appliance is only added when all values are valid.
+
 #### 6.1.6 Option 7: Loading the sample household
 
 To make testing and demonstrations faster, option 7 fills the list with eight typical appliances
@@ -351,6 +361,8 @@ program asks before replacing it. The next screenshots use this sample data.
 **Figure 7. Loading the sample household (option 7)**
 
 ![Loading the sample household (option 7)](screenshots/06_load_sample.png)
+
+*What this screenshot shows:* Choosing 7 loads the eight sample appliances and confirms it with "[OK] Loaded 8 sample appliances."
 
 #### 6.1.7 Option 2: Viewing the appliance list
 
@@ -363,6 +375,8 @@ with `enumerate()` and f-strings with fixed column widths so the numbers line up
 
 ![Appliance table with monthly kWh and total (option 2)](screenshots/07_view_list.png)
 
+*What this screenshot shows:* The table shows each appliance's watts, quantity, hours per day, days per month and monthly kWh, with the household total of 512.4 kWh at the bottom.
+
 #### 6.1.8 Option 3: Removing an appliance
 
 Option 3 shows the same table and asks for the number of the appliance to remove (0 cancels).
@@ -373,6 +387,8 @@ the program subtracts 1 before calling `Household.remove_appliance(index)`, whic
 **Figure 9. Removing the washing machine (option 3)**
 
 ![Removing the washing machine (option 3)](screenshots/08_remove_appliance.png)
+
+*What this screenshot shows:* The user picks number 7 from the numbered table and the program confirms "Removed Washing Machine." The list now has seven appliances.
 
 #### 6.1.9 Option 4: Monthly usage and bill
 
@@ -386,6 +402,8 @@ shows the average per day and a projected yearly cost.
 
 ![Bill breakdown for the sample household (option 4)](screenshots/09_bill.png)
 
+*What this screenshot shows:* The 512.4 kWh is split into three tariff blocks (RM 43.60 + RM 33.40 + RM 109.60). No service tax is charged because usage is under 600 kWh, so the estimated bill is RM 186.60 and the yearly projection is RM 2,239.20.
+
 #### 6.1.10 Option 8: Loading a household from a CSV file
 
 Option 8 opens a small sub-menu to save or load the appliance list. In Figure 11 we loaded
@@ -397,6 +415,8 @@ turns every row back into an `Appliance` object.
 
 ![Loading a larger household from a CSV file (option 8)](screenshots/10_load_csv.png)
 
+*What this screenshot shows:* In the save/load sub-menu the user chooses 2 (load) and types `large_house.csv`. The program reads the file and confirms that 9 appliances were loaded.
+
 #### 6.1.11 A bill that reaches every tariff block
 
 After loading the large house, option 4 gives 1175.2 kWh. Figure 12 shows the tiered algorithm
@@ -407,6 +427,8 @@ that the last block, which has no upper limit, takes all the remaining kWh.
 **Figure 12. Bill for the large house, using all five blocks plus service tax**
 
 ![Bill for the large house, using all five blocks plus service tax](screenshots/11_bill_with_tax.png)
+
+*What this screenshot shows:* For 1175.2 kWh all five tariff blocks are used. Because usage is above 600 kWh, RM 44.22 of service tax is added, giving RM 596.96 a month.
 
 #### 6.1.12 Option 5: Energy-saving analysis
 
@@ -420,6 +442,8 @@ it gives a saving tip for the top three appliances, matched by keyword in `tip_f
 
 ![Energy-saving analysis for the sample household (option 5)](screenshots/12_analysis.png)
 
+*What this screenshot shows:* The analysis rates the home as HIGH, estimates 299.8 kg of CO2 a month (171 trees to offset a year), shows each appliance's share as a # bar, and gives tips for the three biggest users.
+
 #### 6.1.13 Option 6: What-if simulator
 
 Option 6 lets the user test a change before making it. We picked the air conditioner and first
@@ -432,6 +456,8 @@ RM 186.60 to RM 140.16, saving RM 46.44 a month, RM 557.28 a year and 52.6 kg of
 
 ![What-if simulator: air conditioner used 3 hours less per day (option 6)](screenshots/13_what_if.png)
 
+*What this screenshot shows:* The air conditioner is chosen. Asking to cut 10 hours is refused because it only runs 8 hours. Cutting 3 hours lowers usage from 512.4 to 422.4 kWh and the bill from RM 186.60 to RM 140.16.
+
 #### 6.1.14 Option 8: Saving to a CSV file
 
 Users can save their list so they do not have to type it again next time. `save_to_csv()` writes
@@ -443,6 +469,8 @@ a header row and one row per appliance. In Figure 15 we saved the sample househo
 
 ![Saving the appliance list to a CSV file (option 8)](screenshots/14_save_csv.png)
 
+*What this screenshot shows:* In the sub-menu the user chooses 1 (save) and the file name `my_home.csv`. The program confirms that 8 appliances were saved.
+
 #### 6.1.15 Loading a file that does not exist
 
 If the file cannot be found, the `try / except FileNotFoundError` block in `file_menu()` catches the
@@ -453,16 +481,20 @@ badly formatted row, are caught by `except (OSError, ValueError)`.
 
 ![Friendly error when the CSV file is missing](screenshots/15_missing_file.png)
 
+*What this screenshot shows:* Loading `x.csv`, which does not exist, shows "File 'x.csv' was not found." instead of a Python error, and the program returns to the menu.
+
 #### 6.1.16 Option 0: Exiting the program
 
 Option 0 calls `exit_app()`, which asks for confirmation so the user does not quit by accident.
-Answering `n` returns to the menu. Answering `y` sets `self.running` to `False`, which ends the
+Answering `n` would return to the menu. Answering `y`, as in Figure 17, sets `self.running` to `False`, which ends the
 `while` loop in `run()`, and the program says goodbye. Pressing Ctrl+C at any time is also handled
 in `main()`, so the program never ends with an error message.
 
 **Figure 17. Exit confirmation (option 0)**
 
 ![Exit confirmation (option 0)](screenshots/16_exit.png)
+
+*What this screenshot shows:* Choosing 0 asks "Are you sure you want to exit? (y/n)". After `y` the program prints a goodbye message and ends normally.
 
 ### 6.2 Test cases
 
@@ -472,9 +504,9 @@ calculations. The last column shows where each result can be seen.
 
 | # | What we tested | Input | Expected result | Result | Evidence |
 |---|---|---|---|---|---|
-| T1 | Letters in the menu | `abc` | "Please enter a whole number." and ask again | Pass | Fig. 3 |
+| T1 | Letters in the menu | `abc` | "Please enter a whole number." and ask again | Pass | manual run |
 | T2 | Menu number too high | `9` | "Please enter a number from 0 to 8." | Pass | Fig. 3 |
-| T3 | Negative menu number | `-1` | Range message, ask again | Pass | Fig. 3 |
+| T3 | Negative menu number | `-1` | Range message, ask again | Pass | manual run |
 | T4 | Calculate with no appliances | option 4 on empty list | Warning, back to menu | Pass | Fig. 4 |
 | T5 | Empty appliance name | blank | "This field cannot be empty." | Pass | Fig. 6 |
 | T6 | Name too long | 45 characters | "Please keep it under 40 characters." | Pass | manual run |
@@ -498,7 +530,7 @@ calculations. The last column shows where each result can be seen.
 | T24 | Remove appliance | remove no. 7 | list goes from 8 to 7 items | Pass | Fig. 9 |
 | T25 | Save and load CSV | save, then load | the same appliances come back | Pass | Fig. 11, 15 |
 | T26 | Load a missing file | `x.csv` | "File 'x.csv' was not found." | Pass | Fig. 16 |
-| T27 | Exit confirmation | `0` then `n` | stays in the program | Pass | Fig. 17 |
+| T27 | Exit confirmation | `0` then `y` | asks first, then says goodbye | Pass | Fig. 17 |
 
 *Table 3. Test cases.*
 
@@ -510,6 +542,8 @@ All 10 tests pass (Figure 18).
 **Figure 18. All 10 automated unit tests pass**
 
 ![All 10 automated unit tests pass](screenshots/17_unit_tests.png)
+
+*What this screenshot shows:* `python3 -m unittest -v` runs the 10 automated tests in `tests/test_calculations.py`. Each one reports "ok" and the summary says "Ran 10 tests ... OK".
 
 ### 6.3 Results from three example households
 

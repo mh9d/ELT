@@ -1,0 +1,10 @@
+name,power_watts,quantity,hours_per_day,days_per_month
+Air Conditioner,1000,3,8,30
+Refrigerator,200,1,24,30
+LED Lights,10,15,6,30
+Ceiling Fan,70,4,10,30
+Television,120,2,6,30
+Water Heater,3000,2,0.5,30
+Washing Machine,500,1,1,20
+Rice Cooker,700,1,1,30
+Desktop Computer,200,1,6,30
